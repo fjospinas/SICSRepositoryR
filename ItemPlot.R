@@ -47,16 +47,16 @@ plot.item = function(zita = est$zita, item,numboot,alpha ){
     envelop[i,] = c(lower,upper)
     
   }
-  plot(x,y,xlim=c(-6,6),ylim=c(0,1),type="l")
-  lines(x,envelop[,1],col="red")
-  lines(x,envelop[,2],col="blue")
+  plot(x,y,xlim=c(-6,6),ylim=c(0,1),type="l",main=paste("Curva característica para el item",item,sep=" "),xlab = expression(theta),ylab = expression(P(theta)))
+  lines(x,envelop[,1],col="red",lty=2)
+  lines(x,envelop[,2],col="red",lty=2)
 
 }
 
 
 
 
-plot.item(est$zita,1,1000,0.1)
+plot.item(est$zita,1,1000,0.05)
 
 
 est$zita
