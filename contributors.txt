@@ -1,6 +1,8 @@
-################
-# contrubutors #
-################
+##############
+#contrubutors#
+##############
 
-Francisco Javier Ospina
-Yui Paola Chacon
+
+1. Francisco Javier Ospina
+
+Proyecto SICS de IRT
