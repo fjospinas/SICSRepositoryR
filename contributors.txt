@@ -1,0 +1,6 @@
+################
+# contrubutors #
+################
+
+Francisco Javier Ospina
+Yui Paola Chacon
