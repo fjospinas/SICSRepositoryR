@@ -5,7 +5,7 @@ gg = function(a,d, cp,  theta){
 }
 
 est$zita
-plot.item = function(zita = est$zita, item,numboot,alpha ){
+plot.item = function(est = est, item,numboot,alpha ){
   nitems = nrow(est$zita)
   x = seq(from = -6,to = 6,by = .1)
   y = sapply(X = x,FUN = gg,a = est$zita[item,1],d = est$zita[item,2],cp = qlogis(est$zita[item,3]))  
@@ -33,19 +33,10 @@ plot.item = function(zita = est$zita, item,numboot,alpha ){
     envelop[i,] = c(lower,upper)
     
   }
-  plot(x,y,xlim=c(-6,6),ylim=c(0,1),type="l",main=paste("Curva característica para el item",item,sep=" "),xlab = expression(theta),ylab = expression(P(theta)))
+  plot(x,y,xlim=c(-6,6),ylim=c(0,1),type="l",main=paste("Curva característica para el item",
+                                                        item,sep=" "),
+       xlab = expression(theta),ylab = expression(P(theta)))
   lines(x,envelop[,1],col="red",lty=2)
   lines(x,envelop[,2],col="red",lty=2)
 
 }
-
-
-
-
-plot.item(est$zita,1,1000,0.05)
-
-
-est$zita
-parsMirt = list()
-fit = mirt(data=datos,model=1,itemtype="3PL",verbose = T,SE = T)
-itemplot(fit,1,CE=T)
