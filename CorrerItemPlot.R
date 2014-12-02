@@ -1,6 +1,6 @@
 
 
-plot.item(est,1,1000,0.05)
+plot.item(est = est,item = 3,numboot = 1000,alpha = 0.05)
 
 
 est$zita
