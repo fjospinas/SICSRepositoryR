@@ -24,8 +24,8 @@ item.fit.sics = function(pats,zita,theta,G = 10,FUN = median,p.val.sim = FALSE,b
   salida = matrix(c(Tobs,pvals),ncol= 2)
   salida
 }
-theta = pats2[,12]
-item.fit.sics(pats,est$zita,theta,G=5)
+
+item.fit.sics(pats,est$zita,thetas,G=5)
 
 
 
@@ -98,19 +98,21 @@ item.fit.sics = function(pats,zita,theta,G = 41,FUN = median,p.val.sim = FALSE,b
   #print(sact)
   #print(sactInc)
   
-  Denom = colSums(matrix(rep(w.cuad,nitems),ncol = nitems) * sact[,-1])
+  Denom = colSums(matrix(rep(w.cuad,nitems -1 ),ncol = nitems - 1) * sact[,-c(1,ncol(sact))])
   print(Denom)
+  
   #print(Denom)
   #print(pr)
   #print(c(sactInc[,1,1]))
   Eik = matrix(0,ncol = nitems -1,nrow = nitems)
   for(i in 1:nitems){
     for(j in 1:(nitems - 1)){
-      Eik[i,j] = sum(pr[,i] * sactInc[,i,i] * w.cuad) / Denom[j]
+      Eik[i,j] = sum(pr[,i] * sactInc[,j,i] * w.cuad) / Denom[j]
+      print(pr[,i] * sactInc[,j,i] * w.cuad)    
     }
   }
+  print(pr > 1)
   print(Eik)
-  
   score = rowSums(patsSinFrec )
   
   Oik = matrix(0,ncol = nitems -1 ,nrow = nitems)
@@ -118,9 +120,6 @@ item.fit.sics = function(pats,zita,theta,G = 41,FUN = median,p.val.sim = FALSE,b
     inds = print(which(score == i))
     for(j in 1:(nitems)){
       patsCoin = pats[inds,]
-      print("----------")
-      print(dim(patsCoin))
-      print(class(patsCoin))
       if(class(patsCoin) == "matrix"){
         if(dim(patsCoin)[1] != 0){
           Oik[j,i] = sum(apply(X = patsCoin,MARGIN = 1,FUN = function(x){ifelse(x[j] == 1,yes = x[nitems + 1],0)})) / i
@@ -136,6 +135,7 @@ item.fit.sics = function(pats,zita,theta,G = 41,FUN = median,p.val.sim = FALSE,b
   }
   
   Oik = Oik / sum(pats[,nitems + 1 ])
+  print(Oik)
   SXCuad = rowSums((Oik - Eik)^2 / (Eik * (1-(Eik))))
   SXCuad
 }
@@ -147,7 +147,7 @@ pt.cuad = read.table("/home/mirt/Trabajo IRT/Algoritmo SICS/PWcuad.csv",dec=".",
 
 
 inicio = Sys.time()
-a=item.fit.sics(est$pats,est$zita,pt.cuad,G=41)
+a=item.fit.sics(pats = est$pats,zita = est$zita,theta = pt.cuad,G=41)
 Sys.time() - inicio
 sum(a)
 a
