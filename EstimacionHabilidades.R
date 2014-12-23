@@ -58,6 +58,8 @@ logL = function(theta,pat,zita,nitems){
 
 #Uso de la función nlp para oprimizar funciones de R -> R
 #No se puede usar optim debido a que optimiza funciones de R^p -> R
+#Revisar implemetnacion de nlm del libro:
+#Numerical Methods for Unconstrained Optimization and Nonlinear Equations
 MAP = function(patsTheta,zita,nitems){
   pat = patsTheta[1:nitems]
   theta = patsTheta[nitems+1]
