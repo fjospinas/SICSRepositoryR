@@ -127,12 +127,15 @@ inicio = Sys.time()
 ###################
 # Algoritmos SICS #
 ###################
-estimacion.Newton = function(datos){
+estimacion.Newton = function(datos,accel){
+  
   and = inicio.mirt(datos)
   and.copia = and
   pats = patrones(datos)
   npats = nrow(pats)
   nitems = ncol(pats) - 1
+  
+  optAnt1 = optAnt2 = par = rep(0,nitems * 3)  
   
   zita.ant = zita = and
   seguir = TRUE
@@ -161,12 +164,34 @@ estimacion.Newton = function(datos){
     print("Entra a optim")
     zita.vec = as.vector(t(zita))
     #opt = optim(par=zita.vec,fn=LL,method="BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems,control=list(maxit=10))
+    if(accel){
+      if(mm > 3){
+        optAnt2 = optAnt1
+      }          
+    }
+    optAnt1 = par
     opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
     #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
                 #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
     #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
     contadorNear = contadorNear + 1
-    zita = matrix(opt$par,ncol=nitems,byrow=T)
+    par = opt$par
+    
+    
+    if(accel && mm %% 3 == 0L && mm > 5){
+      #print(optAnt1)
+      #print(optAnt2)
+      dX2 = optAnt1 - optAnt2
+      dX = par - optAnt1
+      d2X2 = dX - dX2
+      ratio = sqrt((dX %*% dX) / (d2X2 %*% d2X2))
+      accel = 1 - ratio
+      if(accel < -5) accel <- -5
+      tmp = (1 - accel) * par + accel * optAnt1
+      par = tmp      
+    }
+    
+    zita = matrix(par,ncol=nitems,byrow=T)
     hess = opt$hessian
     
     zita[1,] = ifelse(abs(zita[1,]) > 10, and[1,], zita[1,])

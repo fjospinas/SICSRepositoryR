@@ -6,11 +6,11 @@ datos = expand.table(LSAT7)
 #datos = read.table("file:///home/mirt/ValidaciónTodoElAlgoritmo/Datasets/Test_10_10_2000.csv",sep=" ",header=T)
 #datos = read.table("file:///home/mirt/ValidaciónTodoElAlgoritmo/Datasets/Test_100_2_10000.csv",sep=" ",header=T)
 
-datos = read.table("file:///home/mirt/Validaciones_Modelos_Principales/3PL/Datasets/Test_10_1_1000.csv",sep=" ",header=T)
+datos = read.table("file:///home/mirt/Validaciones_Modelos_Principales/3PL/Datasets/Test_20_1_2000.csv",sep=" ",header=T)
 
 
 inicio = Sys.time()
-est = estimacion.Newton(datos)
+est = estimacion.Newton(datos , accel= T)
 Sys.time() - inicio
 #sink()
 
