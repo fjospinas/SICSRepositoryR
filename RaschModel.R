@@ -1,16 +1,12 @@
 library(mirt)
-data = expand.table(LSAT7)
+data = read.table(file = "file:///home/mirt/Validaciones_Modelos_Principales/Bloque 1/3PL/Datasets/Test_10_1_1000.csv" ,header = T,sep = " ")
 
 pats = patrones(data)
-pats
+patsSinFrec = pats[,-ncol(pats)]
 
 and = start.andrade(data)
 b.ini = and[,2]
 b.ini
-
-prob = function(theta, beta){
-  1 / (1 + exp(-(theta-beta)))
-}
 
 start.theta = function(datos){
   score = rowSums(datos)
@@ -18,21 +14,35 @@ start.theta = function(datos){
 }
 
 theta.ini = start.theta(data)
+theta.ini
+
+score = rowSums(data)
+score
+
+scoreUniq = sort(unique(score))
+scoreUniq
+
+patsSinFrec = cbind(patsSinFrec,rowSums(patsSinFrec))
 
 
+agrup = list()
+frecScore = rep(0,length(scoreUniq))
 
-func.max.theta = function(theta,b){
-  n = length(b)
-  sum = 0
-  for(i in 1:n){
-    p = prob(theta = theta,beta = b[i])
-    sum = sum + (p * (1-p))
-  }
-  sum
+for(i in 1:length(scoreUniq)){
+  agrup = append(agrup,list(which(patsSinFrec[,ncol(patsSinFrec)] == scoreUniq[i])))
+  frecScore[i] = length(which(rowSums(data) == scoreUniq[i]))
 }
 
-func.max.theta(theta.ini[1],b.ini)
-salida = nlm(f = func.max.theta,p = theta.ini[1000],b = b.ini)
-salida$estimate
+gammaR = rep(0,length(agrup))
+for(i in 1:length(agrup)){
+  inds = agrup[[i]]
+  n = length(inds)
+  subMat = pats[inds,][,-ncol(pats)]
+  matB = matrix(rep(b.ini,n),nrow=n,byrow = T)
+  prod = (matB * subMat)
+  expo = exp(rowSums(prod))
+  gammaR[i] = sum(expo)
+}
 
-length(theta.ini)
+denom = prod(gammaR ^ frecScore)
+
