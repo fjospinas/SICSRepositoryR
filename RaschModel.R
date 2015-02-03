@@ -1,5 +1,6 @@
 library(mirt)
-data = read.table(file = "file:///home/mirt/Validaciones_Modelos_Principales/Bloque 1/3PL/Datasets/Test_10_1_1000.csv" ,header = T,sep = " ")
+
+data = read.table(file = "file:///home/mirt/Validaciones_Modelos_Principales/Bloque 1/3PL/Datasets/Test_50_4_5000.csv" ,header = T,sep = " ")
 
 pats = patrones(data)
 patsSinFrec = pats[,-ncol(pats)]
@@ -16,33 +17,53 @@ start.theta = function(datos){
 theta.ini = start.theta(data)
 theta.ini
 
-score = rowSums(data)
-score
 
-scoreUniq = sort(unique(score))
-scoreUniq
-
-patsSinFrec = cbind(patsSinFrec,rowSums(patsSinFrec))
-
-
-agrup = list()
-frecScore = rep(0,length(scoreUniq))
-
-for(i in 1:length(scoreUniq)){
-  agrup = append(agrup,list(which(patsSinFrec[,ncol(patsSinFrec)] == scoreUniq[i])))
-  frecScore[i] = length(which(rowSums(data) == scoreUniq[i]))
+func = function(vecB,data){
+  score = rowSums(data)
+  itemScore = colSums(data)
+  scoreUniq = sort(unique(score))
+  
+  patsSinFrec = cbind(patsSinFrec,rowSums(patsSinFrec))
+  agrup = list()
+  frecScore = rep(0,length(scoreUniq))
+  
+  for(i in 1:length(scoreUniq)){
+    agrup = append(agrup,list(which(patsSinFrec[,ncol(patsSinFrec)] == scoreUniq[i])))
+    frecScore[i] = length(which(rowSums(data) == scoreUniq[i]))
+  }
+  
+  print(frecScore)
+  print("--------------")
+  print(agrup)
+  
+  
+  gammaR = rep(0,length(agrup))
+  for(i in 1:length(agrup)){
+    inds = agrup[[i]]
+    n = length(inds)
+    print(i)
+    print(n)
+    if(n == 1 ){
+      subMat = pats[inds,][-ncol(pats)]
+    }else{
+      subMat = pats[inds,][,-ncol(pats)]
+    }    
+    matB = matrix(rep(vecB,n),nrow=n,byrow = T)
+    prod = (matB * subMat)
+    expo = exp(rowSums(prod))
+    gammaR[i] = sum(expo)
+  }
+  
+  print(gammaR)
+  
+  denom = prod(gammaR ^ frecScore)
+  print(gammaR ^ frecScore)
+  print(denom)
+  
+  num =  exp(-sum(itemScore * vecB))
+  num /denom
 }
 
-gammaR = rep(0,length(agrup))
-for(i in 1:length(agrup)){
-  inds = agrup[[i]]
-  n = length(inds)
-  subMat = pats[inds,][,-ncol(pats)]
-  matB = matrix(rep(b.ini,n),nrow=n,byrow = T)
-  prod = (matB * subMat)
-  expo = exp(rowSums(prod))
-  gammaR[i] = sum(expo)
-}
+func(vecB = b.ini,data = data)
 
-denom = prod(gammaR ^ frecScore)
 
