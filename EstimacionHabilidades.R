@@ -1,33 +1,37 @@
-#--------------------------Segundo método-------------------------------------------------
 #Método EAP
 
-#Probabilidad del patrón
-ggpat = function(pat,zita,nitems,cuad){
-  p = rep(0,nitems)
-  for(i in 1:nitems){
-    p[i] = gg(a = zita[i,1],d = zita[i,2],cp = qlogis(zita[i,3]),theta = cuad)
-    if(pat[i] == 0){
-      p[i] = 1 - p[i] 
+scoresEAP = function(est){
+  
+  pats = est$pats
+  npats = nrow(est$pats)
+  nitems = ncol(est$pats) -1
+  
+  ggpat = function(pat,zita,nitems,cuad){
+    p = rep(0,nitems)
+    for(i in 1:nitems){
+      p[i] = gg(a = zita[i,1],d = zita[i,2],cp = qlogis(zita[i,3]),theta = cuad)
+      if(pat[i] == 0){
+        p[i] = 1 - p[i] 
+      }
     }
+    prod(p)
   }
-  prod(p)
-}
 
-pats = est$pats
-npats = nrow(est$pats)
-nitems = ncol(est$pats) -1
-
-#EAP
-thetaEst3 = rep(0,npats)
-for(j in 1:npats){
-  sumNum = 0
-  sumDen = 0
-  for(k in 1:41){
-    pat = pats[j,][1:nitems]
-    sumNum = sumNum + (pt.cuad[k] * w.cuad[k] * ggpat(pat = pat,zita = est$zita,nitems = nitems,cuad = pt.cuad[k]))
-    sumDen = sumDen + (w.cuad[k] * ggpat(pat = pat,zita = est$zita,nitems = nitems,cuad = pt.cuad[k]))
+  thetaEst = rep(0,npats)
+  for(j in 1:npats){
+    sumNum = 0
+    sumDen = 0
+    for(k in 1:41){
+      pat = pats[j,][1:nitems]
+      sumNum = sumNum + (pt.cuad[k] * w.cuad[k] * ggpat(pat = pat,zita = est$zita,nitems = nitems,cuad = pt.cuad[k]))
+      sumDen = sumDen + (w.cuad[k] * ggpat(pat = pat,zita = est$zita,nitems = nitems,cuad = pt.cuad[k]))
+    }
+    thetaEst[j] = sumNum / sumDen
   }
-  thetaEst3[j] = sumNum / sumDen
+  
+  ret = cbind(est$pats[,-ncol(est$pats)],thetaEst)
+  colnames(ret) = c(sapply(X = 1:nitems,FUN = function(x){paste("Item",x,sep = " ")}),"Score")
+  ret
 }
 
 
