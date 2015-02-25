@@ -3,7 +3,7 @@ gg = function(a,d, cp,  theta){
   exp(cp)/(1+exp(cp))+ (1-(exp(cp)/(1+exp(cp))))*(1 + exp(-D*(a*theta+ d)))^(-1)
 }
 
-personFit = function(est,data){
+itemFit2 = function(est,data){
   scores = scoresEAP(est)  
   nitems = ncol(data)
   nscores = nrow(scores)
@@ -18,7 +18,7 @@ personFit = function(est,data){
       }
     }
   }
-
+  
   LL = P = Q = matrix(0,nrow = ninds,ncol = nitems)
   for(j in 1:ninds){
     for(i in 1:nitems){
@@ -30,20 +30,25 @@ personFit = function(est,data){
   Q = 1 - P
   LL[data == 1] = P[data == 1]
   LL[data == 0] = Q[data == 0]
-  LL = rowSums(log(LL))
+  LL = colSums(log(LL))
+  print(LL)
   
-  mu = sigmaCuad = rep(0,ninds)  
+  mu = sigmaCuad = rep(0,nitems)  
   for( i in 1:nitems){
     Pi = cbind(P[,i],Q[,i])
     logPi = log(Pi)
-    mu = mu + rowSums(Pi * logPi)    
-    sigmaCuad = Pi[,1] * Pi[,2] * (log(Pi[,1]/Pi[,2])^2)
+    mu[i] = sum(Pi * logPi)    
+    #sigmaCuad = sigmaCuad + Pi[,1] * Pi[,2] * (log(Pi[,1]/Pi[,2])^2)
+    sigmaCuad[i] = sum(Pi[,1] * Pi[,2] * (log(Pi[,1]/Pi[,2])^2))
     
   }
+  print("mu")
+  print(mu)
+  print(sigmaCuad)
   Z3 = (LL - mu) / sqrt(sigmaCuad)
   Z3
 }
 
 
-z=personFit(est = est,data = data)
+z=itemFit2(est = est,data = data)
 z
