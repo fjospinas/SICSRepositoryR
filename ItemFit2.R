@@ -42,13 +42,9 @@ itemFit2 = function(est,data){
     sigmaCuad[i] = sum(Pi[,1] * Pi[,2] * (log(Pi[,1]/Pi[,2])^2))
     
   }
-  print("mu")
-  print(mu)
-  print(sigmaCuad)
   Z3 = (LL - mu) / sqrt(sigmaCuad)
   Z3
 }
 
 
 z=itemFit2(est = est,data = data)
-z
