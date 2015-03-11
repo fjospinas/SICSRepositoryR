@@ -1,41 +1,45 @@
 #Probabilidad
-gg = function(a,d, cp,  theta){
-  exp(cp)/(1+exp(cp))+ (1-(exp(cp)/(1+exp(cp))))*(1 + exp(-D*(a*theta+ d)))^(-1)
+M3PL <- function(zita,theta){
+  exp(zita[3])/(1+exp(zita[3]))+ (1-(exp(zita[3])/(1+exp(zita[3]))))*(1 + exp(-D*(zita[1]*theta+ zita[2])))^(-1)
 }
 
+#Función que indexa patrones para expandirlos
+indexPat = function(data,pats){
+  comprimData = apply(data,MARGIN=1,FUN=paste,collapse="/")
+  comprimPats = apply(pats[,1:ncol(data)],MARGIN=1,FUN=paste,collapse="/")
+  index = lapply(comprimPats,FUN = function(x) {which(x == comprimData)})
+  index
+}
+
+#función  que calcula item fit basado en Z3 
 itemFit2 = function(est,data){
+  zita  = est$zita
+  zita[,3] = qlogis(zita[,3])
   scores = scoresEAP(est)  
   nitems = ncol(data)
   nscores = nrow(scores)
   ninds = nrow(data)
   
-  
-  scoresTot = rep(0,nscores)
-  for(i in 1:ninds){
-    for(j in 1:nscores){
-      if(sum(data[i,] == scores[j,][1:nitems]) == nitems){
-        scoresTot[i] = scores[j,][nitems + 1]
-      }
-    }
+  #Expansión de patrones sobre los datos originales
+  index = indexPat(data,est$pats)  
+  scoresTot = numeric(nrow(data))
+  for(mm in 1:nrow(scores)){
+    scoresTot[index[[mm]]] = scores[mm,ncol(data) +1]        
   }
   
-  LL = P = Q = matrix(0,nrow = ninds,ncol = nitems)
-  for(j in 1:ninds){
-    for(i in 1:nitems){
-      P[j,i] = gg(a = est$zita[i,1],d = est$zita[i,2],cp = qlogis(est$zita[i,3]),theta = scoresTot[j])
-    }
-  }
+  #Matriz de probabilidad
+  P = apply(zita,1,M3PL,scoresTot)
   
-  print(dim(LL))
-  Q = 1 - P
+  #Calculo de logverosimilitud
+  LL = matrix(0,ncol = ncol(P),nrow = nrow(P))
   LL[data == 1] = P[data == 1]
-  LL[data == 0] = Q[data == 0]
+  LL[data == 0] = 1 - P[data == 0]
   LL = colSums(log(LL))
-  print(LL)
   
+  #Calculo de estimado Z3
   mu = sigmaCuad = rep(0,nitems)  
   for( i in 1:nitems){
-    Pi = cbind(P[,i],Q[,i])
+    Pi = cbind(P[,i],1 - P[,i])
     logPi = log(Pi)
     mu[i] = sum(Pi * logPi)    
     #sigmaCuad = sigmaCuad + Pi[,1] * Pi[,2] * (log(Pi[,1]/Pi[,2])^2)
@@ -45,6 +49,5 @@ itemFit2 = function(est,data){
   Z3 = (LL - mu) / sqrt(sigmaCuad)
   Z3
 }
-
 
 z=itemFit2(est = est,data = data)
