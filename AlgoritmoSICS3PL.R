@@ -2,6 +2,7 @@ rm(list = ls(all = TRUE))
 library(mirt)
 library(Matrix)
 library(numDeriv)
+library(optimx)
 
 #-fopenmp
 
@@ -133,6 +134,7 @@ estimacion.Newton = function(datos){
   pats = patrones(datos)
   npats = nrow(pats)
   nitems = ncol(pats) - 1
+  listaOptimX = list()
   
   zita.ant = zita = and
   seguir = TRUE
@@ -162,6 +164,9 @@ estimacion.Newton = function(datos){
     zita.vec = as.vector(t(zita))
     #opt = optim(par=zita.vec,fn=LL,method="BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems,control=list(maxit=10))
     opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
+    #optx = optimx(par=zita.vec,fn=LL2,gr=gradLoglik,itnmax = 20,control=list(all.methods=TRUE, save.failures=TRUE, trace=0),R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and)
+    optx = optimx(par=zita.vec,fn=LL2,gr=gradLoglik,itnmax = 20,control=list(all.methods=TRUE, save.failures=TRUE, trace=0),R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and)
+    listaOptimX = append(listaOptimX,list(optx))
     #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
                 #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
     #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
@@ -178,7 +183,7 @@ estimacion.Newton = function(datos){
     print(paste("Fin ciclo: ", mm, " Convergencia: ", max(abs((zita - zita.ant)))," Tiempo Ciclo: ",Sys.time() - inicio.ciclo))
     if(max(abs((zita - zita.ant))) < 10^(-3)){seguir = FALSE}
     and = zita.ant = zita
-    if(mm > 1000){
+    if(mm > 200){
       print(paste("El algoritmo superó los ",mm - 1," ciclos",sep=""))
       break()
       #stop(paste("El algoritmo superó los ",mm - 1," ciclos",sep=""))
@@ -186,7 +191,7 @@ estimacion.Newton = function(datos){
   } #fin while
   zita[3,] = plogis(zita[3,])
   zita = t(zita)
-  list(zita=zita,contadorNear=contadorNear,ciclos = mm,pats = pats,hess = hess)
+  list(zita=zita,contadorNear=contadorNear,ciclos = mm,pats = pats,hess = hess,listaOptimX = listaOptimX)
 }
 gcc = NULL
 #sink("/home/mirt/Trabajo IRT/Algoritmo SICS/SalidaAUX.txt")
