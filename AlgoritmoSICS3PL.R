@@ -128,7 +128,7 @@ inicio = Sys.time()
 ###################
 # Algoritmos SICS #
 ###################
-estimacion.Newton = function(datos){
+estimacion.Newton = function(datos,method){
   and = inicio.mirt(datos)
   and.copia = and
   pats = patrones(datos)
@@ -163,13 +163,12 @@ estimacion.Newton = function(datos){
     print("Entra a optim")
     zita.vec = as.vector(t(zita))
     #opt = optim(par=zita.vec,fn=LL,method="BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems,control=list(maxit=10))
-    opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
+    opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= method,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
     #optx = optimx(par=zita.vec,fn=LL2,gr=gradLoglik,itnmax = 20,control=list(all.methods=TRUE, save.failures=TRUE, trace=0),R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and)
-    optx = optimx(par=zita.vec,fn=LL2,gr=gradLoglik,itnmax = 20,control=list(all.methods=TRUE, save.failures=TRUE, trace=0),R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and)
+    
+    optx = optimx(par=zita.vec,fn=LL2,gr=gradLoglik,itnmax = 20,method = method,control=list(save.failures=TRUE, trace=0),R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and)
     listaOptimX = append(listaOptimX,list(optx))
-    #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
-                #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
-    #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
+  
     contadorNear = contadorNear + 1
     zita = matrix(opt$par,ncol=nitems,byrow=T)
     hess = opt$hessian
