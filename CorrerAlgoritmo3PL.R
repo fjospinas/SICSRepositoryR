@@ -6,10 +6,12 @@ datos = expand.table(LSAT7)
 #datos = read.table("file:///home/mirt/ValidaciónTodoElAlgoritmo/Datasets/Test_10_10_2000.csv",sep=" ",header=T)
 #datos = read.table("file:///home/mirt/ValidaciónTodoElAlgoritmo/Datasets/Test_100_2_10000.csv",sep=" ",header=T)
 
-datos = read.table("file:///home/mirt/Validaciones_Modelos_Principales/3PL/Datasets/Test_10_1_1000.csv",sep=" ",header=T)
+datos = read.table("/home/mirt/Validaciones_Modelos_Principales/Bloque_1/3PL/Datasets/Test_20_1_2000.csv",sep=" ",header=T)
 
 
 inicio = Sys.time()
+gradEval = list()
+hessEval = list()
 est = estimacion.Newton(datos)
 Sys.time() - inicio
 #sink()
@@ -35,3 +37,12 @@ max(abs(coef.mirt - est$zita))
 est$contadorNear
 est$ciclos
 
+
+maxGrad = numeric(length(gradEval))
+meanGrad = numeric(length(gradEval))
+for(i in 1:length(gradEval)){
+  maxGrad[i] = max(abs(gradEval[[i]]))  
+  meanGrad[i] = mean(abs(gradEval[[i]]))
+}
+plot(1:length(maxGrad),maxGrad,type="l",col="black")
+lines(1:length(meanGrad),meanGrad,type="l",col="red")

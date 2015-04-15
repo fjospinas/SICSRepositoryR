@@ -165,6 +165,9 @@ estimacion.Newton = function(datos){
     #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
                 #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
     #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
+    gradEval <<- append(gradEval,list(gradLoglik(opt$par,R,fvec,pt.cuad,nitems,and)))
+    hessEval <<- append(hessEval,list(opt$hess))
+    #zita.vec,R,fvec,pt.cuad,nitems,and                   
     contadorNear = contadorNear + 1
     zita = matrix(opt$par,ncol=nitems,byrow=T)
     hess = opt$hessian
