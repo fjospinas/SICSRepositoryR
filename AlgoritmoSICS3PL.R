@@ -161,11 +161,24 @@ estimacion.Newton = function(datos){
     print("Entra a optim")
     zita.vec = as.vector(t(zita))
     #opt = optim(par=zita.vec,fn=LL,method="BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems,control=list(maxit=10))
-    opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
+    #opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
+    opt = optim(par=zita.vec,fn=LL2,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
     #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
                 #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
     #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
-    gradEval <<- append(gradEval,list(gradLoglik(opt$par,R,fvec,pt.cuad,nitems,and)))
+    #gradEval <<- append(gradEval,list(gradLoglik(opt$par,R,fvec,pt.cuad,nitems,and)))
+    
+    #Evaluación Gradiente númerico
+    myenv <- new.env()
+    assign("zita.vec", zita.vec , envir = myenv)
+    assign("R", R , envir = myenv)
+    assign("fvec", fvec , envir = myenv)
+    assign("pt.cuad", pt.cuad , envir = myenv)
+    assign("nitems", nitems , envir = myenv)
+    assign("and", and , envir = myenv)
+    gradNum = numericDeriv(quote(LL2(zita.vec,R,fvec,pt.cuad,5,and)), c("zita.vec"), myenv)
+    gradNum = attr(gradNum,which = "gradient")
+    gradEval <<- append(gradEval,list(gradNum))
     hessEval <<- append(hessEval,list(opt$hess))
     #zita.vec,R,fvec,pt.cuad,nitems,and                   
     contadorNear = contadorNear + 1
