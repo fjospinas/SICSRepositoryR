@@ -183,7 +183,7 @@ estimacion.Newton = function(datos){
     
     #opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
     for(i in 1:nitems){
-      opt2 = optim(par=zita.vec,fn=unSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=1,control=list(maxit=20),hessian = T)
+      opt2 = optim(par=zita.vec,fn=unSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=i,control=list(maxit=20),hessian = T)
       zita.vec = opt2$par      
     }
     
