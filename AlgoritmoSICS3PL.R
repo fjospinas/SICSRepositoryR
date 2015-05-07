@@ -201,7 +201,7 @@ estimacion.Newton = function(datos){
     
     #print(mean(abs((zita - zita.ant)/zita.ant)))
     print(paste("Fin ciclo: ", mm, " Convergencia: ", max(abs((zita - zita.ant)))," Tiempo Ciclo: ",Sys.time() - inicio.ciclo))
-    if(max(abs((zita - zita.ant))) < 10^(-3)){seguir = FALSE}
+    if(max(abs((zita - zita.ant))) < 10^(-4)){seguir = FALSE}
     and = zita.ant = zita
     if(mm > 1000){
       print(paste("El algoritmo superó los ",mm - 1," ciclos",sep=""))
