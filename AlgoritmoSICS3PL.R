@@ -108,11 +108,27 @@ LL = function(zita.vec,R,fvec,pt.cuad,nitems){
       qki = 1 - pki 
       suma = suma + (rki*log(pki)+(fki-rki)*
                        log(qki))
-      
     }
   }
   -suma
 }
+
+unSumR = function(zita.vec,R,fvec,pt.cuad,i){
+  suma = 0
+  for(k in 1:41){
+      rki = R[k,i]
+      fki = fvec[k]
+      a = zita.vec[i]
+      d = zita.vec[nitems + i]
+      c = zita.vec[2*nitems + i]
+      pki = gg(a=a,d=d,cp=c,theta=pt.cuad[k])
+      qki = 1 - pki 
+      suma = suma + (rki*log(pki)+(fki-rki)*
+                       log(qki))
+  }
+  -suma
+}
+
 
 LL2 = function(zita.vec,R,fvec,pt.cuad,nitems,and){
    .Call("Loglik",zita.vec,R,fvec,pt.cuad)
@@ -120,6 +136,10 @@ LL2 = function(zita.vec,R,fvec,pt.cuad,nitems,and){
 
 gradLoglik = function(zita.vec,R,fvec,pt.cuad,nitems,and){
   .Call("grad",zita.vec,R,fvec,pt.cuad)
+}
+
+unSum = function(zita.vec,R,fvec,pt.cuad,nitems,and,i){
+  .Call("unSumando",zita.vec,R,fvec,pt.cuad,i-1)
 }
 
 
@@ -160,14 +180,19 @@ estimacion.Newton = function(datos){
     
     print("Entra a optim")
     zita.vec = as.vector(t(zita))
-    #opt = optim(par=zita.vec,fn=LL,method="BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems,control=list(maxit=10))
-    opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
-    #opt = optim(par=zita.vec,fn=LL2,method= "L-BFGS-B",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=10))
-                #,lower = c(rep(-10,10),rep(-40,10),rep(-600,10)),upper = c(rep(10,10),rep(40,10),rep(600,10)))
-    #opt = vmmin(fr=LL,x=zita.vec,R=R,fvec=fvec,pt.cuad=pt.cuad,nitems = nitems)
+    
+    #opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
+    for(i in 1:nitems){
+      opt2 = optim(par=zita.vec,fn=unSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=1,control=list(maxit=20),hessian = T)
+      zita.vec = opt2$par      
+    }
+    
+    #print(opt$par)
+    #print(zita.vec)
+    
     contadorNear = contadorNear + 1
-    zita = matrix(opt$par,ncol=nitems,byrow=T)
-    hess = opt$hessian
+    zita = matrix(zita.vec,ncol=nitems,byrow=T)
+    hess = opt2$hessian
     
     zita[1,] = ifelse(abs(zita[1,]) > 10, and[1,], zita[1,])
     zita[2,] = ifelse(abs(zita[2,]) > 40, and[2,], zita[2,])

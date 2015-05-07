@@ -245,6 +245,32 @@ RcppExport SEXP Loglik(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad){
   END_RCPP
 }
 
+RcppExport SEXP unSumando(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad, SEXP item){
+  using namespace Rcpp ;
+  BEGIN_RCPP
+  NumericVector xzita(zita);
+  NumericMatrix xRmat(Rmat);
+  NumericVector xf(f);
+  NumericVector xptcuad(ptcuad);
+  NumericVector xi(item);
+  
+  const int items = xzita.length() / 3;
+  const int numCuads = xptcuad.length();
+  
+  double i = xi[0];
+  double suma = 0.0;
+  for(int k = 0 ; k < numCuads ; k++){
+      double pki = Pr(1, xzita[i], xzita[items + i], xzita[2 * items + i], xptcuad[k]);
+      double qki = 1.0 - pki;
+      //std::cout << "pki: " << pki << "qki: " << qki << "\n";
+      suma = suma + (xRmat(k,i) * log(pki) + (xf[k] - xRmat(k,i)) * log(qki));
+  }
+  NumericVector ret(1);
+  ret(0) = -suma;
+  return ret;
+  END_RCPP
+}
+
 //Gradiente logverosimilitud
 RcppExport SEXP grad(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad){
   using namespace Rcpp ;
