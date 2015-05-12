@@ -142,17 +142,23 @@ unSum = function(zita.vec,R,fvec,pt.cuad,nitems,and,i){
   .Call("unSumando",zita.vec,R,fvec,pt.cuad,i-1)
 }
 
+#gradUnSum(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad, SEXP item){
+gradUnSum = function(zita.vec,R,fvec,pt.cuad,nitems,and,i){
+  .Call("gradUnSum",zita.vec,R,fvec,pt.cuad,i-1)
+}
 
 inicio = Sys.time()
 ###################
 # Algoritmos SICS #
 ###################
-estimacion.Newton = function(datos){
+estimacion.Newton = function(datos,accel2 = FALSE){
   and = inicio.mirt(datos)
   and.copia = and
   pats = patrones(datos)
   npats = nrow(pats)
   nitems = ncol(pats) - 1
+  
+  optAnt1 = optAnt2 = rep(0,nitems * 3)  
   
   zita.ant = zita = and
   seguir = TRUE
@@ -181,17 +187,38 @@ estimacion.Newton = function(datos){
     print("Entra a optim")
     zita.vec = as.vector(t(zita))
     
+    if(accel2){
+      if(mm > 3){
+        optAnt2 = optAnt1
+      }          
+    }
+    optAnt1 = zita.vec
+    
     #opt = optim(par=zita.vec,fn=LL2,gr=gradLoglik,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,control=list(maxit=20),hessian = T)
     for(i in 1:nitems){
-      opt2 = optim(par=zita.vec,fn=unSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=i,control=list(maxit=20),hessian = T)
-      zita.vec = opt2$par      
+      #opt2 = optim(par=zita.vec,fn=unSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=i,control=list(maxit=20),hessian = T)
+      opt2 = optim(par=zita[,i],fn=unSum,gr=gradUnSum,method= "BFGS",R=R,fvec=fvec,pt.cuad=pt.cuad,nitems=nitems,and=and,i=i,control=list(maxit=20),hessian = T)
+      zita[,i] = opt2$par      
+    }
+    
+    if(accel2 && mm %% 3 == 0L && mm > 5){
+      #print(optAnt1)
+      #print(optAnt2)
+      dX2 = optAnt1 - optAnt2
+      dX = as.vector(t(zita)) - optAnt1
+      d2X2 = dX - dX2
+      ratio = sqrt((dX %*% dX) / (d2X2 %*% d2X2))
+      accel = 1 - ratio
+      if(accel < -5) accel <- -5
+      tmp = (1 - accel) * as.vector(t(zita)) + accel * optAnt1
+      zita = matrix(tmp,ncol=nitems,byrow=T)
     }
     
     #print(opt$par)
     #print(zita.vec)
     
     contadorNear = contadorNear + 1
-    zita = matrix(zita.vec,ncol=nitems,byrow=T)
+    #zita = matrix(zita.vec,ncol=nitems,byrow=T)
     hess = opt2$hessian
     
     zita[1,] = ifelse(abs(zita[1,]) > 10, and[1,], zita[1,])
@@ -203,7 +230,7 @@ estimacion.Newton = function(datos){
     print(paste("Fin ciclo: ", mm, " Convergencia: ", max(abs((zita - zita.ant)))," Tiempo Ciclo: ",Sys.time() - inicio.ciclo))
     if(max(abs((zita - zita.ant))) < 10^(-4)){seguir = FALSE}
     and = zita.ant = zita
-    if(mm > 1000){
+    if(mm > 200){
       print(paste("El algoritmo superó los ",mm - 1," ciclos",sep=""))
       break()
       #stop(paste("El algoritmo superó los ",mm - 1," ciclos",sep=""))

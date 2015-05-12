@@ -254,13 +254,13 @@ RcppExport SEXP unSumando(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad, SEXP item){
   NumericVector xptcuad(ptcuad);
   NumericVector xi(item);
   
-  const int items = xzita.length() / 3;
+  //const int items = xzita.length() / 3;
   const int numCuads = xptcuad.length();
   
   double i = xi[0];
   double suma = 0.0;
   for(int k = 0 ; k < numCuads ; k++){
-      double pki = Pr(1, xzita[i], xzita[items + i], xzita[2 * items + i], xptcuad[k]);
+      double pki = Pr(1, xzita[0], xzita[1], xzita[2], xptcuad[k]);
       double qki = 1.0 - pki;
       //std::cout << "pki: " << pki << "qki: " << qki << "\n";
       suma = suma + (xRmat(k,i) * log(pki) + (xf[k] - xRmat(k,i)) * log(qki));
@@ -268,6 +268,55 @@ RcppExport SEXP unSumando(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad, SEXP item){
   NumericVector ret(1);
   ret(0) = -suma;
   return ret;
+  END_RCPP
+}
+
+//Gradiente logverosimilitud
+RcppExport SEXP gradUnSum(SEXP zita,SEXP Rmat,SEXP f, SEXP ptcuad, SEXP item){
+  using namespace Rcpp ;
+  BEGIN_RCPP
+  NumericVector xzita(zita);
+  NumericMatrix xRmat(Rmat);
+  NumericVector xf(f);
+  NumericVector xptcuad(ptcuad);
+  NumericVector xi(item);
+  
+  const int items = xzita.length() / 3;
+  const int numCuads = xptcuad.length();
+  double i = xi[0];
+  
+  NumericMatrix g(3,items);
+  NumericVector h(3);
+  NumericMatrix retorno(3,items);
+  //bool *llamadoNear = new bool;
+  //*llamadoNear = 0;
+  
+   double *suma = new double[3];
+   //Inicializa suma a cero
+   for(int j = 0 ; j < 3 ; j++){
+     suma[j] = 0;
+   }
+   
+   for(int k = 0 ; k < numCuads ; k++){
+     double p = Pr(1,xzita[i], xzita[items + i] ,xzita[2 * items + i], xptcuad(k));
+     double pm = Prm(1,xzita[i] , xzita[items + i], xptcuad(k));
+     double aux = (xRmat(k,i) -  xf[k] * p) * ((pm * (1 - pm)) / (p * (1 - p)));
+     h[0] = xptcuad[k]*(1/(1+exp(xzita[2 * items + i])));
+     h[1] = (1/(1+exp(xzita[2 * items + i])));
+     h[2] = pow((1/(1+exp(xzita[2 * items + i]))),2) * exp(xzita[2 * items + i]) / pm;
+     for(int j = 0 ; j < 3 ; j++){
+      suma[j] = suma[j] + (aux * h[j]); 
+     }
+   }
+  
+  NumericVector grad(3);
+  for(int j = 0 ; j < 3 ; j++){
+    grad(j) = -suma[j]; 
+  }
+  
+  delete[] suma;
+  
+  return grad;
   END_RCPP
 }
 
